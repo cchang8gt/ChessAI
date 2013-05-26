@@ -16,20 +16,22 @@ public class ChessPiece {
     public static final int COLOR_WHITEBOARD = 2;
     public static final int COLOR_BLACKBOARD = 3;
     
-    //Archetypes
+    //Archetypes and Characteristics
     public static final String PAWN = "Pawn";
     public static final String BISHOP = "Bishop";
     public static final String KNIGHT = "Knight";
     public static final String ROOK = "Rook";
     public static final String QUEEN = "Queen";
     public static final String KING = "King";
-    
+    public static final String DARK = "Dark";
+    public boolean dark = false;
     //Ground
     public static final String GROUND_WHITE = "White Ground";
     public static final String GROUND_BLACK = "Black Ground";
     
     private String archetype;
     private int color;
+    private int cellColor; //this shouldn't change
     
     public ChessPiece(String archetype, int color) {
 	this.archetype = archetype;
@@ -47,5 +49,17 @@ public class ChessPiece {
     
     public String getArchetype() {
 	return this.archetype;
+    }
+    
+    public void setCellColor(int c) {
+	this.cellColor = c;
+    }
+    
+    public int getCellColor() {
+	return this.cellColor;
+    }
+    
+    public boolean isDark() {
+	return this.dark;
     }
 }

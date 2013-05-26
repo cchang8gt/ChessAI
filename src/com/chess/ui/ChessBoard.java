@@ -14,29 +14,36 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import com.chess.engine.Chess;
+
+/**
+ * Handles UI components of the game of Chess
+ * @author Chris
+ *
+ * TODO:
+ * Clean up code and add chess game code to the chess game
+ * Add shading for clicked elements to fix visibility
+ */
 public class ChessBoard extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final boolean DEBUG = true;
-    private static final int PLAYER = 0;
-    private static final int COMPUTER = 1;
+    
     private HashMap<String, Image> images;
-    private int activeColor, playerColor, selectedRow = -1, selectedCol = -1;
+    Chess chessGame;
+    
+    private int selectedRow, selectedCol = -1;
     // holds panel info
     private JLabel[] labels = new JLabel[64];
     private ImagePanel[] panels = new ImagePanel[64];
+    
     // game state info
     private ChessPiece[][] gameState = new ChessPiece[8][8];
-    private ArrayList<ChessPiece> playerAlive, playerDead, aiAlive, aiDead;
     private int turnCounter = 0;
+    //for games with players
 
     // color == player's color.
     public ChessBoard(int color) {
-	activeColor = color;
-	playerColor = color;
-
-	playerAlive = new ArrayList<ChessPiece>();
-	playerDead = new ArrayList<ChessPiece>();
-	aiAlive = new ArrayList<ChessPiece>();
+	chessGame = new Chess(this, color);
 
 	loadResources();
 	constructGame();
@@ -55,28 +62,55 @@ public class ChessBoard extends JPanel {
 	    images.put("White Ground", img);
 	    img = ImageIO.read(new File("res/Red_Pawn.png"));
 	    images.put("Red Pawn", img);
-	    img = ImageIO.read(new File("res/Blue_Pawn.png"));
-	    images.put("Blue Pawn", img);
 	    img = ImageIO.read(new File("res/Red_Bishop.png"));
 	    images.put("Red Bishop", img);
-	    img = ImageIO.read(new File("res/Blue_Bishop.png"));
-	    images.put("Blue Bishop", img);
 	    img = ImageIO.read(new File("res/Red_Knight.png"));
 	    images.put("Red Knight", img);
-	    img = ImageIO.read(new File("res/Blue_Knight.png"));
-	    images.put("Blue Knight", img);
 	    img = ImageIO.read(new File("res/Red_Rook.png"));
 	    images.put("Red Rook", img);
-	    img = ImageIO.read(new File("res/Blue_Rook.png"));
-	    images.put("Blue Rook", img);
 	    img = ImageIO.read(new File("res/Red_Queen.png"));
 	    images.put("Red Queen", img);
-	    img = ImageIO.read(new File("res/Blue_Queen.png"));
-	    images.put("Blue Queen", img);
 	    img = ImageIO.read(new File("res/Red_King.png"));
 	    images.put("Red King", img);
+
+	    img = ImageIO.read(new File("res/Red_Pawn_Dark.png"));
+	    images.put("Red Pawn Dark", img);
+	    img = ImageIO.read(new File("res/Red_Bishop_Dark.png"));
+	    images.put("Red Bishop Dark", img);
+	    img = ImageIO.read(new File("res/Red_Knight_Dark.png"));
+	    images.put("Red Knight Dark", img);
+	    img = ImageIO.read(new File("res/Red_Rook_Dark.png"));
+	    images.put("Red Rook Dark", img);
+	    img = ImageIO.read(new File("res/Red_Queen_Dark.png"));
+	    images.put("Red Queen Dark", img);
+	    img = ImageIO.read(new File("res/Red_King_Dark.png"));
+	    images.put("Red King Dark", img);
+
+	    img = ImageIO.read(new File("res/Blue_Pawn.png"));
+	    images.put("Blue Pawn", img);
+	    img = ImageIO.read(new File("res/Blue_Bishop.png"));
+	    images.put("Blue Bishop", img);
+	    img = ImageIO.read(new File("res/Blue_Knight.png"));
+	    images.put("Blue Knight", img);
+	    img = ImageIO.read(new File("res/Blue_Rook.png"));
+	    images.put("Blue Rook", img);
+	    img = ImageIO.read(new File("res/Blue_Queen.png"));
+	    images.put("Blue Queen", img);
 	    img = ImageIO.read(new File("res/Blue_King.png"));
 	    images.put("Blue King", img);
+
+	    img = ImageIO.read(new File("res/Blue_Pawn_Dark.png"));
+	    images.put("Blue Pawn Dark", img);
+	    img = ImageIO.read(new File("res/Blue_Bishop_Dark.png"));
+	    images.put("Blue Bishop Dark", img);
+	    img = ImageIO.read(new File("res/Blue_Knight_Dark.png"));
+	    images.put("Blue Knight Dark", img);
+	    img = ImageIO.read(new File("res/Blue_Rook_Dark.png"));
+	    images.put("Blue Rook Dark", img);
+	    img = ImageIO.read(new File("res/Blue_Queen_Dark.png"));
+	    images.put("Blue Queen Dark", img);
+	    img = ImageIO.read(new File("res/Blue_King_Dark.png"));
+	    images.put("Blue King Dark", img);
 	}
 	catch (IOException e) {
 	    e.printStackTrace();
@@ -84,101 +118,83 @@ public class ChessBoard extends JPanel {
     }
 
     /**
-     * Red moves first.
-     * 
-     * First square starts white
-     * 
-     * Blue top: RKBQZBKR PPPPPPPP
-     * 
-     * Blue bot: PPPPPPPP RKBQZBKR
-     * 
+     * Initializes the chess board
      */
     private void constructGame() {
-	playerAlive = openingSetup(playerColor);
-	aiAlive = openingSetup(playerColor ^ 1);
 
 	if (DEBUG) {
-	    System.out.println("Player Alive size: " + playerAlive.size());
-	    System.out.println("AI Alive size: " + aiAlive.size());
+	    System.out.println("Player Alive size: " + chessGame.playerAlive.size());
+	    System.out.println("AI Alive size: " + chessGame.aiAlive.size());
 	}
 
 	// populate game state
 	// i == row, j == col
 	for (int i = 0; i < 2; i++) {
 	    for (int j = 0; j < 8; j++) {
-		gameState[i][j] = aiAlive.get(i * 8 + j);
+		chessGame.gameState[i][j] = chessGame.aiAlive.get(i * 8 + j);
 	    }
 	}
+
 	for (int i = 2; i < 6; i++) {
 	    for (int j = 0; j < 8; j++) {
 		if (j % 2 == 0) {
 		    if (i % 2 == 0) {
-			gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
+			chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
 		    }
 		    else {
-			gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK, ChessPiece.COLOR_BLACKBOARD);
+			chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK, ChessPiece.COLOR_BLACKBOARD);
 		    }
 		}
 		else {
 		    if (i % 2 == 0) {
-			gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK, ChessPiece.COLOR_BLACKBOARD);
+			chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK, ChessPiece.COLOR_BLACKBOARD);
 		    }
 		    else {
-			gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
+			chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
 		    }
-		    // gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK,
+		    // chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK,
 		    // ChessPiece.COLOR_BLACKBOARD);
 		}
 	    }
 	}
+
 	for (int i = 6; i < 8; i++) {
 	    for (int j = 0; j < 8; j++) {
-		gameState[i][j] = playerAlive.get((i - 6) * 8 + j);
+		chessGame.gameState[i][j] = chessGame.playerAlive.get((i - 6) * 8 + j);
+	    }
+	}
+
+	// Store board color info to recreate board later on
+
+	for (int i = 0; i < 8; i++) {
+	    for (int j = 0; j < 8; j++) {
+		if (j % 2 == 0) {
+		    if (i % 2 == 0) {
+			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_WHITEBOARD);
+		    }
+		    else {
+			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_BLACKBOARD);
+		    }
+		}
+		else {
+		    if (i % 2 == 0) {
+			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_BLACKBOARD);
+		    }
+		    else {
+			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_WHITEBOARD);
+		    }
+		}
 	    }
 	}
 
 	if (DEBUG) {
 	    for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
-		    System.out.print(gameState[i][j].getArchetype() + " ");
+		    System.out.print(chessGame.gameState[i][j].getArchetype() + " ");
 		}
 		System.out.println();
 	    }
 	}
-    }
-
-    private ArrayList<ChessPiece> openingSetup(int color) {
-	ArrayList<ChessPiece> units = new ArrayList<ChessPiece>();
-	// if we're setting up a player (red)
-	if (color == playerColor) {
-	    for (int i = 0; i < 8; i++) {
-		units.add(new ChessPiece(ChessPiece.PAWN, color));
-	    }
-	    units.add(new ChessPiece(ChessPiece.ROOK, color));
-	    units.add(new ChessPiece(ChessPiece.KNIGHT, color));
-	    units.add(new ChessPiece(ChessPiece.BISHOP, color));
-	    units.add(new ChessPiece(ChessPiece.QUEEN, color));
-	    units.add(new ChessPiece(ChessPiece.KING, color));
-	    units.add(new ChessPiece(ChessPiece.BISHOP, color));
-	    units.add(new ChessPiece(ChessPiece.KNIGHT, color));
-	    units.add(new ChessPiece(ChessPiece.ROOK, color));
-	}
-	// if we're setting up a comp (blue)
-	else {
-	    units.add(new ChessPiece(ChessPiece.ROOK, color));
-	    units.add(new ChessPiece(ChessPiece.KNIGHT, color));
-	    units.add(new ChessPiece(ChessPiece.BISHOP, color));
-	    units.add(new ChessPiece(ChessPiece.QUEEN, color));
-	    units.add(new ChessPiece(ChessPiece.KING, color));
-	    units.add(new ChessPiece(ChessPiece.BISHOP, color));
-	    units.add(new ChessPiece(ChessPiece.KNIGHT, color));
-	    units.add(new ChessPiece(ChessPiece.ROOK, color));
-	    for (int i = 0; i < 8; i++) {
-		units.add(new ChessPiece(ChessPiece.PAWN, color));
-	    }
-	}
-
-	return units;
     }
 
     private ArrayList<ChessPiece> defaultBoard(int color) {
@@ -204,23 +220,29 @@ public class ChessBoard extends JPanel {
 	    this.add(panels[i]);
 	}
     }
-    
+
     private void addPanelsAndLabels(ArrayList<ChessPiece> gameState) {
-	
+
     }
 
-    private void drawGameState() {
+    public void drawGameState() {
 	int count = 0;
 	String[] colorMap = { "Red", "Blue", "White", "Black" };
 	removeAll();
 	for (int row = 0; row < 8; row++) {
 	    for (int col = 0; col < 8; col++) {
 		try {
-		    if (gameState[row][col].getColor() == ChessPiece.COLOR_RED || gameState[row][col].getColor() == ChessPiece.COLOR_BLUE) {
-			panels[count] = new ImagePanel(images.get(colorMap[gameState[row][col].getColor()] + " " + gameState[row][col].getArchetype()), gameState[row][col], row, col);
+		    if (chessGame.gameState[row][col].getColor() == ChessPiece.COLOR_RED || chessGame.gameState[row][col].getColor() == ChessPiece.COLOR_BLUE) {
+			/*
+			if (chessGame.gameState[row][col].isDark()) {
+			    panels[count] = new ImagePanel(images.get(colorMap[chessGame.gameState[row][col].getColor()] + " " + chessGame.gameState[row][col].getArchetype() + " " + chessGame.gameState[row][col].DARK),
+				    chessGame.gameState[row][col], row, col);
+			}
+			*/
+			panels[count] = new ImagePanel(images.get(colorMap[chessGame.gameState[row][col].getColor()] + " " + chessGame.gameState[row][col].getArchetype()), chessGame.gameState[row][col], row, col);
 		    }
 		    else {
-			panels[count] = new ImagePanel(images.get(gameState[row][col].getArchetype()), gameState[row][col], row, col);
+			panels[count] = new ImagePanel(images.get(chessGame.gameState[row][col].getArchetype()), chessGame.gameState[row][col], row, col);
 		    }
 		    panels[count].setName("FOO");
 		    count++;
@@ -235,6 +257,7 @@ public class ChessBoard extends JPanel {
 
     private void doAction(int rowFrom, int colFrom, int rowTo, int colTo) {
 	System.out.println("Moved");
+	System.out.println(chessGame.validateMove(rowFrom, colFrom, rowTo, colTo, chessGame.activeColor));
     }
 
     /**
@@ -262,11 +285,11 @@ public class ChessBoard extends JPanel {
      * @return
      */
     private int classifyPiece(int x, int y) {
-	ChessPiece c = gameState[x][y];
-	if (c.getColor() == playerColor) {
+	ChessPiece c = chessGame.gameState[x][y];
+	if (c.getColor() == chessGame.playerColor) {
 	    return 0;
 	}
-	else if (c.getColor() != playerColor) {
+	else if (c.getColor() != chessGame.playerColor) {
 	    return 1;
 	}
 	else {
@@ -298,9 +321,12 @@ public class ChessBoard extends JPanel {
 
 	    ImagePanel i;
 	    ChessPiece chessPiece;
+	    ChessPiece prevPiece;
+	    
 	    i = (ImagePanel) e.getSource();
 	    chessPiece = i.piece;
-	    if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false && piece.getColor() == playerColor == true || selectedCol == col || selectedRow == row) {
+	    if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false && piece.getColor() == chessGame.playerColor == true || selectedCol == col
+		    || selectedRow == row) {
 		if (selectedCol == -1) {
 		    selectedCol = col;
 		    selectedRow = row;
@@ -312,7 +338,6 @@ public class ChessBoard extends JPanel {
 		else {
 		    if (selectedRow == row && selectedCol == col) {
 			selectedRow = -1;
-			selectedCol = -1;
 		    }
 		    else {
 			doAction(selectedRow, selectedCol, row, col);
@@ -325,7 +350,7 @@ public class ChessBoard extends JPanel {
 		    System.out.println(": " + selectedRow + "," + selectedCol);
 		}
 	    }
-
+	    addPanelsAndLabels();
 	}
     }
 }
