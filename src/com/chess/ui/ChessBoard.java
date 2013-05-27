@@ -15,31 +15,34 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.chess.engine.Chess;
+import com.chess.engine.ChessPiece;
 
 /**
  * Handles UI components of the game of Chess
+ * 
  * @author Chris
- *
- * TODO:
- * Clean up code and add chess game code to the chess game
- * Add shading for clicked elements to fix visibility
+ * 
+ *         TODO: Clean up code and add chess game code to the chess game Add
+ *         shading for clicked elements to fix visibility
  */
 public class ChessBoard extends JPanel {
     private static final long serialVersionUID = 1L;
     private static final boolean DEBUG = true;
-    
+
     private HashMap<String, Image> images;
     Chess chessGame;
-    
-    private int selectedRow, selectedCol = -1;
+
+    private int selectedRow = -1;
+    private int selectedCol = -1;
     // holds panel info
     private JLabel[] labels = new JLabel[64];
     private ImagePanel[] panels = new ImagePanel[64];
-    
+
     // game state info
     private ChessPiece[][] gameState = new ChessPiece[8][8];
     private int turnCounter = 0;
-    //for games with players
+
+    // for games with players
 
     // color == player's color.
     public ChessBoard(int color) {
@@ -152,7 +155,8 @@ public class ChessBoard extends JPanel {
 		    else {
 			chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
 		    }
-		    // chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK,
+		    // chessGame.gameState[i][j] = new
+		    // ChessPiece(ChessPiece.GROUND_BLACK,
 		    // ChessPiece.COLOR_BLACKBOARD);
 		}
 	    }
@@ -197,6 +201,34 @@ public class ChessBoard extends JPanel {
 	}
     }
 
+    private void constructBoard() {
+	for (int i = 0; i < 8; i++) {
+	    for (int j = 0; j < 8; j++) {
+		if (chessGame.gameState[i][j].getColor() != ChessPiece.COLOR_RED && chessGame.gameState[i][j].getColor() != ChessPiece.COLOR_BLUE) {
+		    if (j % 2 == 0) {
+			if (i % 2 == 0) {
+			    chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
+			}
+			else {
+			    chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK, ChessPiece.COLOR_BLACKBOARD);
+			}
+		    }
+		    else {
+			if (i % 2 == 0) {
+			    chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_BLACK, ChessPiece.COLOR_BLACKBOARD);
+			}
+			else {
+			    chessGame.gameState[i][j] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
+			}
+			// chessGame.gameState[i][j] = new
+			// ChessPiece(ChessPiece.GROUND_BLACK,
+			// ChessPiece.COLOR_BLACKBOARD);
+		    }
+		}
+	    }
+	}
+    }
+
     private ArrayList<ChessPiece> defaultBoard(int color) {
 	return null;
     }
@@ -209,6 +241,7 @@ public class ChessBoard extends JPanel {
     }
 
     private void addPanelsAndLabels() {
+	constructBoard();
 	drawGameState();
 	for (int i = 0; i < panels.length; i++) {
 	    labels[i] = new JLabel();
@@ -234,12 +267,16 @@ public class ChessBoard extends JPanel {
 		try {
 		    if (chessGame.gameState[row][col].getColor() == ChessPiece.COLOR_RED || chessGame.gameState[row][col].getColor() == ChessPiece.COLOR_BLUE) {
 			/*
-			if (chessGame.gameState[row][col].isDark()) {
-			    panels[count] = new ImagePanel(images.get(colorMap[chessGame.gameState[row][col].getColor()] + " " + chessGame.gameState[row][col].getArchetype() + " " + chessGame.gameState[row][col].DARK),
-				    chessGame.gameState[row][col], row, col);
-			}
-			*/
-			panels[count] = new ImagePanel(images.get(colorMap[chessGame.gameState[row][col].getColor()] + " " + chessGame.gameState[row][col].getArchetype()), chessGame.gameState[row][col], row, col);
+			 * if (chessGame.gameState[row][col].isDark()) {
+			 * panels[count] = new
+			 * ImagePanel(images.get(colorMap[chessGame
+			 * .gameState[row][col].getColor()] + " " +
+			 * chessGame.gameState[row][col].getArchetype() + " " +
+			 * chessGame.gameState[row][col].DARK),
+			 * chessGame.gameState[row][col], row, col); }
+			 */
+			panels[count] = new ImagePanel(images.get(colorMap[chessGame.gameState[row][col].getColor()] + " " + chessGame.gameState[row][col].getArchetype()),
+				chessGame.gameState[row][col], row, col);
 		    }
 		    else {
 			panels[count] = new ImagePanel(images.get(chessGame.gameState[row][col].getArchetype()), chessGame.gameState[row][col], row, col);
@@ -256,8 +293,36 @@ public class ChessBoard extends JPanel {
     }
 
     private void doAction(int rowFrom, int colFrom, int rowTo, int colTo) {
-	System.out.println("Moved");
-	System.out.println(chessGame.validateMove(rowFrom, colFrom, rowTo, colTo, chessGame.activeColor));
+	/*
+	 * Check and make sure that From and To colors are not the same If To is
+	 * an enemy piece, capture If To is not an enemey piece, move
+	 * 
+	 * Movement rules: IF you move piece A to B Save A cell color Save B
+	 * cell color Make B = A Set A color to B Set old tile color to A
+	 */
+	System.out.println("FROM: " + chessGame.gameState[rowFrom][colFrom].getArchetype());
+	if (chessGame.validateMove(rowFrom, colFrom, rowTo, colTo)) {
+	    ChessPiece from = chessGame.gameState[rowFrom][colFrom];
+	    chessGame.gameState[rowTo][colTo] = new ChessPiece(from);
+	    chessGame.gameState[rowFrom][colFrom] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
+
+	    if (DEBUG) {
+		// System.out.println("Moved? " +
+		// chessGame.validateMove(rowFrom, colFrom, rowTo, colTo));
+		System.out.print("Moved from: " + rowFrom + ", " + colFrom + " to: " + rowTo + ", " + colTo);
+		System.out.println();
+		System.out.print("Alive List Size Player: " + chessGame.playerAlive.size() + " Dead List Size Player: " + chessGame.playerDead.size());
+		System.out.println();
+		System.out.print("Alive List Size AI: " + chessGame.aiAlive.size() + " Dead List AI: " + chessGame.aiDead.size());
+		System.out.println();
+		System.out.println();
+	    }
+	}
+	// if illegal move
+	else {
+	    System.out.println("Illegal move");
+	    System.out.println();
+	}
     }
 
     /**
@@ -322,33 +387,56 @@ public class ChessBoard extends JPanel {
 	    ImagePanel i;
 	    ChessPiece chessPiece;
 	    ChessPiece prevPiece;
-	    
+
 	    i = (ImagePanel) e.getSource();
 	    chessPiece = i.piece;
-	    if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false && piece.getColor() == chessGame.playerColor == true || selectedCol == col
-		    || selectedRow == row) {
-		if (selectedCol == -1) {
-		    selectedCol = col;
+	    /*
+	     * If clicked piece is not black ground AND If clicked piece is not
+	     * white ground AND If clicked piece is the owner's color OR First
+	     * click
+	     */
+	    /*
+	     * if (piece.getArchetype().equals("Black Ground") == false &&
+	     * piece.getArchetype().equals("White Ground") == false &&
+	     * piece.getColor() == chessGame.playerColor == true || selectedRow
+	     * == row || selectedCol == col) { if (selectedCol == -1) {
+	     * selectedCol = col; selectedRow = row; } else if (selectedRow ==
+	     * -1) { selectedCol = col; selectedRow = row; } else { if
+	     * (selectedRow == row && selectedCol == col) { selectedRow = -1; }
+	     * else { System.out.println("WHOOO"); doAction(selectedRow,
+	     * selectedCol, row, col); selectedRow = -1; selectedCol = -1; } }
+	     * 
+	     * }
+	     */
+
+	    // if first click
+	    if (selectedRow == -1 || selectedCol == -1) {
+		if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false /*
+																  * &&
+																  * piece
+																  * .
+																  * getColor
+																  * (
+																  * )
+																  * ==
+																  * chessGame
+																  * .
+																  * playerColor
+																  * ==
+																  * true
+																  */) {
 		    selectedRow = row;
-		}
-		else if (selectedRow == -1) {
 		    selectedCol = col;
-		    selectedRow = row;
 		}
-		else {
-		    if (selectedRow == row && selectedCol == col) {
-			selectedRow = -1;
-		    }
-		    else {
-			doAction(selectedRow, selectedCol, row, col);
-			selectedRow = -1;
-			selectedCol = -1;
-		    }
-		}
-		if (DEBUG) {
-		    System.out.print(piece.getArchetype());
-		    System.out.println(": " + selectedRow + "," + selectedCol);
-		}
+	    }
+	    // if not first click
+	    else {
+		doAction(selectedRow, selectedCol, row, col);
+		selectedRow = selectedCol = -1;
+	    }
+	    if (DEBUG) {
+		System.out.print("Archetype: " + piece.getArchetype());
+		System.out.println(": " + selectedRow + "," + selectedCol);
 	    }
 	    addPanelsAndLabels();
 	}

@@ -1,4 +1,4 @@
-package com.chess.ui;
+package com.chess.engine;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +41,7 @@ public class ChessPiece {
     public ChessPiece(ChessPiece piece) {
 	this.archetype = piece.getArchetype();
 	this.color = piece.getColor();
+	this.cellColor = piece.getCellColor();
     }
     
     public int getColor() {
@@ -57,6 +58,15 @@ public class ChessPiece {
     
     public int getCellColor() {
 	return this.cellColor;
+    }
+    
+    public String getCellColorString() {
+	if(this.cellColor == COLOR_WHITEBOARD) {
+	    return GROUND_WHITE;
+	}
+	else {
+	    return GROUND_BLACK;
+	}
     }
     
     public boolean isDark() {
