@@ -31,17 +31,21 @@ public class ChessPiece {
     
     private String archetype;
     private int color;
-    private int cellColor; //this shouldn't change
+    private boolean enpassantable;
+    
+    private int row;
+    private int col;
     
     public ChessPiece(String archetype, int color) {
 	this.archetype = archetype;
 	this.color = color;
+	this.enpassantable = false;
     }
     
     public ChessPiece(ChessPiece piece) {
 	this.archetype = piece.getArchetype();
 	this.color = piece.getColor();
-	this.cellColor = piece.getCellColor();
+	this.enpassantable = false;
     }
     
     public int getColor() {
@@ -52,24 +56,23 @@ public class ChessPiece {
 	return this.archetype;
     }
     
-    public void setCellColor(int c) {
-	this.cellColor = c;
-    }
-    
-    public int getCellColor() {
-	return this.cellColor;
-    }
-    
-    public String getCellColorString() {
-	if(this.cellColor == COLOR_WHITEBOARD) {
-	    return GROUND_WHITE;
-	}
-	else {
-	    return GROUND_BLACK;
-	}
-    }
-    
     public boolean isDark() {
 	return this.dark;
+    }
+    
+    public void setRow(int r) {
+	this.row = r;
+    }
+    
+    public int getRow() {
+	return this.row;
+    }
+    
+    public void setCol(int c) {
+	this.col = c;
+    }
+    
+    public int getCol() {
+	return this.col;
     }
 }

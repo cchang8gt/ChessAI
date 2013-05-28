@@ -22,8 +22,10 @@ import com.chess.engine.ChessPiece;
  * 
  * @author Chris
  * 
- *         TODO: Clean up code and add chess game code to the chess game Add
- *         shading for clicked elements to fix visibility
+ *         TODO: Clean up code and add chess game code to the chess game 
+ *         TODO: Add shading for clicked elements to fix visibility
+ *         
+ *         TODO: Add text UI (not important)
  */
 public class ChessBoard extends JPanel {
     private static final long serialVersionUID = 1L;
@@ -167,30 +169,7 @@ public class ChessBoard extends JPanel {
 		chessGame.gameState[i][j] = chessGame.playerAlive.get((i - 6) * 8 + j);
 	    }
 	}
-
-	// Store board color info to recreate board later on
-
-	for (int i = 0; i < 8; i++) {
-	    for (int j = 0; j < 8; j++) {
-		if (j % 2 == 0) {
-		    if (i % 2 == 0) {
-			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_WHITEBOARD);
-		    }
-		    else {
-			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_BLACKBOARD);
-		    }
-		}
-		else {
-		    if (i % 2 == 0) {
-			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_BLACKBOARD);
-		    }
-		    else {
-			chessGame.gameState[i][j].setCellColor(ChessPiece.COLOR_WHITEBOARD);
-		    }
-		}
-	    }
-	}
-
+	chessGame.updatePositions();
 	if (DEBUG) {
 	    for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
@@ -254,7 +233,7 @@ public class ChessBoard extends JPanel {
 	}
     }
 
-    private void addPanelsAndLabels(ArrayList<ChessPiece> gameState) {
+    private void textBoard() {
 
     }
 
@@ -266,15 +245,6 @@ public class ChessBoard extends JPanel {
 	    for (int col = 0; col < 8; col++) {
 		try {
 		    if (chessGame.gameState[row][col].getColor() == ChessPiece.COLOR_RED || chessGame.gameState[row][col].getColor() == ChessPiece.COLOR_BLUE) {
-			/*
-			 * if (chessGame.gameState[row][col].isDark()) {
-			 * panels[count] = new
-			 * ImagePanel(images.get(colorMap[chessGame
-			 * .gameState[row][col].getColor()] + " " +
-			 * chessGame.gameState[row][col].getArchetype() + " " +
-			 * chessGame.gameState[row][col].DARK),
-			 * chessGame.gameState[row][col], row, col); }
-			 */
 			panels[count] = new ImagePanel(images.get(colorMap[chessGame.gameState[row][col].getColor()] + " " + chessGame.gameState[row][col].getArchetype()),
 				chessGame.gameState[row][col], row, col);
 		    }
@@ -302,19 +272,53 @@ public class ChessBoard extends JPanel {
 	 */
 	System.out.println("FROM: " + chessGame.gameState[rowFrom][colFrom].getArchetype());
 	if (chessGame.validateMove(rowFrom, colFrom, rowTo, colTo)) {
+	    if(chessGame.gameState[rowTo][colTo].getColor() == ChessPiece.COLOR_RED || chessGame.gameState[rowTo][colTo].getColor() == ChessPiece.COLOR_BLUE) {
+		if(chessGame.humanColor == chessGame.gameState[rowTo][colTo].getColor()) {
+		    chessGame.playerDead.add(chessGame.gameState[rowTo][colTo]);
+		    chessGame.playerAlive.remove(chessGame.gameState[rowTo][colTo]);
+		}
+		else {
+		    chessGame.aiDead.add(chessGame.gameState[rowTo][colTo]);
+		    chessGame.aiAlive.remove(chessGame.gameState[rowTo][colTo]);
+		}
+	    }
 	    ChessPiece from = chessGame.gameState[rowFrom][colFrom];
 	    chessGame.gameState[rowTo][colTo] = new ChessPiece(from);
+	    
+	    //This line just sets an empty cell. Should be overwritten once board gets updated.
 	    chessGame.gameState[rowFrom][colFrom] = new ChessPiece(ChessPiece.GROUND_WHITE, ChessPiece.COLOR_WHITEBOARD);
 
 	    if (DEBUG) {
 		// System.out.println("Moved? " +
 		// chessGame.validateMove(rowFrom, colFrom, rowTo, colTo));
+		System.out.println("--------------------doAction--------------------");
 		System.out.print("Moved from: " + rowFrom + ", " + colFrom + " to: " + rowTo + ", " + colTo);
 		System.out.println();
-		System.out.print("Alive List Size Player: " + chessGame.playerAlive.size() + " Dead List Size Player: " + chessGame.playerDead.size());
+		System.out.print("AlivePlayer: " + chessGame.playerAlive.size() + " DeadPlayer: " + chessGame.playerDead.size());
 		System.out.println();
-		System.out.print("Alive List Size AI: " + chessGame.aiAlive.size() + " Dead List AI: " + chessGame.aiDead.size());
+		System.out.print("AlivePlayer Units: ");
+		for(int i = 0; i < chessGame.playerAlive.size(); i++) {
+		    System.out.print(chessGame.playerAlive.get(i).getArchetype() + " ");
+		}
 		System.out.println();
+		System.out.print("DeadPlayer Units: ");
+		for(int i = 0; i < chessGame.playerDead.size(); i++) {
+		    System.out.print(chessGame.playerDead.get(i).getArchetype() + " ");
+		}
+		System.out.println();
+		System.out.print("AliveAI: " + chessGame.aiAlive.size() + " DeadAI: " + chessGame.aiDead.size());
+		System.out.println();
+		System.out.print("AliveAI Units: ");
+		for(int i = 0; i < chessGame.aiAlive.size(); i++) {
+		    System.out.print(chessGame.aiAlive.get(i).getArchetype() + " ");
+		}
+		System.out.println();
+		System.out.print("DeadAI Units: ");
+		for(int i = 0; i < chessGame.aiDead.size(); i++) {
+		    System.out.print(chessGame.aiDead.get(i).getArchetype() + " ");
+		}
+		System.out.println();
+		System.out.println("--------------------doAction--------------------");
 		System.out.println();
 	    }
 	}
@@ -331,7 +335,8 @@ public class ChessBoard extends JPanel {
     private void updateTurn() {
 	// sanity check
 	selectedRow = selectedCol = -1;
-	turnCounter++;
+	chessGame.turnCounter++;
+	chessGame.activeColor = chessGame.activeColor^1;
     }
 
     private void addPiece(ImageIcon img, String block) {
@@ -362,6 +367,11 @@ public class ChessBoard extends JPanel {
 	}
     }
 
+    /**
+     * Nested class for Swing labels
+     * @author qob
+     *
+     */
     class ImagePanel extends JButton implements ActionListener {
 	private static final long serialVersionUID = 1L;
 
@@ -383,7 +393,6 @@ public class ChessBoard extends JPanel {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-
 	    ImagePanel i;
 	    ChessPiece chessPiece;
 	    ChessPiece prevPiece;
@@ -395,36 +404,10 @@ public class ChessBoard extends JPanel {
 	     * white ground AND If clicked piece is the owner's color OR First
 	     * click
 	     */
-	    /*
-	     * if (piece.getArchetype().equals("Black Ground") == false &&
-	     * piece.getArchetype().equals("White Ground") == false &&
-	     * piece.getColor() == chessGame.playerColor == true || selectedRow
-	     * == row || selectedCol == col) { if (selectedCol == -1) {
-	     * selectedCol = col; selectedRow = row; } else if (selectedRow ==
-	     * -1) { selectedCol = col; selectedRow = row; } else { if
-	     * (selectedRow == row && selectedCol == col) { selectedRow = -1; }
-	     * else { System.out.println("WHOOO"); doAction(selectedRow,
-	     * selectedCol, row, col); selectedRow = -1; selectedCol = -1; } }
-	     * 
-	     * }
-	     */
-
 	    // if first click
 	    if (selectedRow == -1 || selectedCol == -1) {
-		if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false /*
-																  * &&
-																  * piece
-																  * .
-																  * getColor
-																  * (
-																  * )
-																  * ==
-																  * chessGame
-																  * .
-																  * playerColor
-																  * ==
-																  * true
-																  */) {
+		if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false //&& piece.getColor() == chessGame.playerColor == true) {
+		) {
 		    selectedRow = row;
 		    selectedCol = col;
 		}
@@ -435,8 +418,10 @@ public class ChessBoard extends JPanel {
 		selectedRow = selectedCol = -1;
 	    }
 	    if (DEBUG) {
+		System.out.println("--------------------actionPerformed--------------------");
 		System.out.print("Archetype: " + piece.getArchetype());
 		System.out.println(": " + selectedRow + "," + selectedCol);
+		System.out.println("--------------------actionPerformed--------------------");
 	    }
 	    addPanelsAndLabels();
 	}
