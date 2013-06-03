@@ -1,6 +1,7 @@
 package com.chess.engine;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Represents a chess piece.
@@ -32,7 +33,7 @@ public class ChessPiece {
     private String archetype;
     private int color;
     private boolean enpassantable;
-    
+    private ArrayList<ChessMove> movesList;
     private int row;
     private int col;
     
@@ -74,5 +75,19 @@ public class ChessPiece {
     
     public int getCol() {
 	return this.col;
+    }
+    
+    public void setMovesList(ArrayList<ChessMove> l) {
+    	this.movesList = l;
+    }
+    
+    public ArrayList<ChessMove> getActions() {
+    	return this.movesList;
+    }
+    
+    public String toString() {
+    	String s;
+    	s = "Rank: " + this.archetype + " Position: " + this.row + ", " + this.col;
+    	return s;
     }
 }

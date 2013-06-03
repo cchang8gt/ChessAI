@@ -7,7 +7,8 @@ public class GameContainer extends JFrame {
     public ChessBoard board;
     
     public GameContainer() {
-	this.add(new ChessBoard(ChessPiece.COLOR_RED));
+	//this.add(new ChessBoard(ChessPiece.COLOR_RED));
+    this.add(new ChessBoard(new ChrisAI(), new ChrisAI()));
 	this.setTitle("Chess");
 	this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	this.setSize(800, 800);
