@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import javax.imageio.ImageIO;
@@ -13,9 +14,11 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import com.chess.ai.chrisai.ChrisAI;
 import com.chess.engine.Chess;
+import com.chess.engine.ChessMove;
 import com.chess.engine.ChessPiece;
 
 /**
@@ -45,10 +48,10 @@ public class ChessBoard extends JPanel {
 	private ChessPiece[][] gameState = new ChessPiece[8][8];
 	private int turnCounter = 0;
 
-	//agents
+	// agents
 	private ChrisAI top;
 	private ChrisAI bot;
-	
+
 	public ChessBoard(int color) {
 		chessGame = new Chess(this, color);
 
@@ -56,9 +59,17 @@ public class ChessBoard extends JPanel {
 		constructGame();
 		showGUI();
 	}
-	
+
 	public ChessBoard(ChrisAI top, ChrisAI bot) {
-	
+		chessGame = new Chess(this, top, bot);
+		chessGame.botgame = true;
+		
+		loadResources();
+		constructGame();
+		showGUI();
+
+		chessGame.updatePositions();
+		chessGame.updateLegalMoves();
 	}
 
 	// load image files into hashmap
@@ -129,7 +140,8 @@ public class ChessBoard extends JPanel {
 	}
 
 	/**
-	 * Initializes the chess board
+	 * Initializes the chess game state NOTE: this should be handled by the
+	 * chess engine.
 	 */
 	private void constructGame() {
 
@@ -230,7 +242,7 @@ public class ChessBoard extends JPanel {
 	/**
 	 * Creates the board and adds necessary panels etc.
 	 */
-	private void addPanelsAndLabels() {
+	public void addPanelsAndLabels() {
 		constructBoard();
 		drawGameState();
 		for (int i = 0; i < panels.length; i++) {
@@ -281,6 +293,7 @@ public class ChessBoard extends JPanel {
 
 	/**
 	 * For human players. Called when a move is made by using the mouse
+	 * 
 	 * @param rowFrom
 	 * @param colFrom
 	 * @param rowTo
@@ -331,6 +344,23 @@ public class ChessBoard extends JPanel {
 		}
 	}
 
+	private void startGame() {
+		ChessMove move;
+		int counter = 0;
+		while (counter < 50) {
+			if (chessGame.getTurn() % 2 == 0) {
+				move = bot.action(chessGame);
+				if (chessGame.validateMove(move)) {
+					chessGame.doAction(move);
+					counter++;
+				}
+			}
+			else {
+				move = top.action(chessGame);
+			}
+		}
+	}
+
 	/**
 	 * Nested class for Swing labels
 	 * 
@@ -369,32 +399,38 @@ public class ChessBoard extends JPanel {
 			 * white ground AND If clicked piece is the owner's color OR First
 			 * click
 			 */
-			// if first click
-			if (selectedRow == -1 || selectedCol == -1) {
-				if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false // &&
-																																	// piece.getColor()
-																																	// ==
-																																	// chessGame.playerColor
-																																	// ==
-																																	// true)
-																																	// {
-				) {
-					selectedRow = row;
-					selectedCol = col;
+
+			if (chessGame.botgame == false) {
+				if (selectedRow == -1 || selectedCol == -1) {
+					if (piece.getArchetype().equals("Black Ground") == false && piece.getArchetype().equals("White Ground") == false // &&
+																																		// piece.getColor()
+																																		// ==
+																																		// chessGame.playerColor
+																																		// ==
+																																		// true)
+																																		// {
+					) {
+						selectedRow = row;
+						selectedCol = col;
+					}
 				}
+				// if not first click
+				else {
+					doAction(selectedRow, selectedCol, row, col);
+					selectedRow = selectedCol = -1;
+				}
+				if (DEBUG) {
+					System.out.println("--------------------actionPerformed--------------------");
+					System.out.print("Archetype: " + piece.getArchetype());
+					System.out.println(": " + selectedRow + "," + selectedCol);
+					System.out.println("--------------------actionPerformed--------------------");
+				}
+				addPanelsAndLabels();
 			}
-			// if not first click
 			else {
-				doAction(selectedRow, selectedCol, row, col);
-				selectedRow = selectedCol = -1;
+				chessGame.playSingleStep();
+				addPanelsAndLabels();
 			}
-			if (DEBUG) {
-				System.out.println("--------------------actionPerformed--------------------");
-				System.out.print("Archetype: " + piece.getArchetype());
-				System.out.println(": " + selectedRow + "," + selectedCol);
-				System.out.println("--------------------actionPerformed--------------------");
-			}
-			addPanelsAndLabels();
 		}
 	}
 }

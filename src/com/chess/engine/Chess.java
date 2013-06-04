@@ -17,19 +17,27 @@ public class Chess {
 	private static final long serialVerionUID = 1L;
 	private static final int RED = 0;
 	private static final int BLUE = 1;
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
+	public boolean botgame = false;
+	
 	private ChessBoard chessboard;
 	public ChessPiece[][] gameState;
 	// HUMAN ONLY DETERMINES POSITIONING. HUMAN == BOTTOM
 	public int activeColor, playerColor, aiColor, humanColor = -1;
 	public ArrayList<ChessPiece> playerAlive, playerDead, aiAlive, aiDead;
-	public int turnCounter = 0;
+	private int turnCounter = 0;
 
 	private ChrisAI top;
 	private ChrisAI bot;
-	
+
+	//private int turnCounter = 0;
 	// Color is always player's color (the one that will be on the bottom)
+	/**
+	 * Constructor for single player Chess
+	 * @param c
+	 * @param color
+	 */
 	public Chess(ChessBoard c, int color) {
 		activeColor = RED;
 		if (color == RED) {
@@ -51,6 +59,29 @@ public class Chess {
 
 		playerAlive = openingSetup(humanColor);
 		aiAlive = openingSetup(humanColor ^ 1);
+
+
+	}
+	
+	public Chess(ChessBoard c, ChrisAI top, ChrisAI bot) {
+		activeColor = RED;
+		humanColor = RED;
+		playerColor = RED;
+		aiColor = BLUE;
+		
+		this.top = top;
+		this.bot = bot;
+		chessboard = c;
+		
+		gameState = new ChessPiece[8][8];
+		playerAlive = new ArrayList<ChessPiece>();
+		playerDead = new ArrayList<ChessPiece>();
+		aiAlive = new ArrayList<ChessPiece>();
+		aiDead = new ArrayList<ChessPiece>();
+		
+		playerAlive = openingSetup(humanColor);
+		aiAlive = openingSetup(humanColor^1);
+		
 	}
 
 	/**
@@ -93,6 +124,9 @@ public class Chess {
 		return units;
 	}
 
+	public boolean validateMove(ChessMove move) {
+		return validateMove(move.rowFrom, move.colFrom, move.rowTo, move.colTo);
+	}
 	/**
 	 * Validates a move, color is the color of the player making the move.
 	 * 
@@ -106,8 +140,9 @@ public class Chess {
 	 *         TODO: Add basic movement rules for each piece Add capture rules
 	 *         for each piece Add en passant for Pawn Add Rank change for pawn
 	 *         Clean up this code man!
-	 *         
-	 *         TODO: Add check/checkmate -> Should be easy with legal move check and check state
+	 * 
+	 *         TODO: Add check/checkmate -> Should be easy with legal move check
+	 *         and check state
 	 */
 	public boolean validateMove(int rowFrom, int colFrom, int rowTo, int colTo) {
 		// If moving piece belongs to active player and destination does not
@@ -259,12 +294,13 @@ public class Chess {
 				}
 			}
 			else if (gameState[rowFrom][colFrom].getArchetype().equals(ChessPiece.KNIGHT)) {
-				/*
-				 * Top right: rowTo < rowFrom, colTo > colFrom Top left: rowTo <
-				 * rowFrom, colTo < colFrom Bottom Left: rowTo > rowFrom, colTo
-				 * < colFrom Bottom Right:rowTo > rowFrom, colTo > colFrom code
-				 * is way too verbose
-				 */
+
+				// Top right: rowTo < rowFrom, colTo > colFrom
+				// Top left: rowTo < rowFrom, colTo < colFrom
+				// Bottom Left: rowTo > rowFrom, colTo < colFrom
+				// Bottom Right:rowTo > rowFrom, colTo > colFrom
+				// this code is too verbose
+
 				// top right
 				if (rowTo < rowFrom && colTo > colFrom) {
 					if (Math.abs(rowTo - rowFrom) == 2 && Math.abs(colTo - colFrom) == 1) {
@@ -497,24 +533,69 @@ public class Chess {
 	}
 
 	/**
-	 * this is incredibly lazy
-	 * 
-	 * @param piece
-	 * @return
+	 * Test method
+	 * ISSUES: It doesn't update properly. Need to find a way to get the GUI to update while game is updating.
 	 */
-	private ArrayList<ChessMove> getLegalMoves(ChessPiece piece) {
-		ArrayList<ChessMove> moves = new ArrayList<ChessMove>();
-
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
-				if (validateMove(piece.getRow(), piece.getCol(), i, j)) {
-					moves.add(new ChessMove(piece.getRow(), piece.getCol(), i, j));
+	public void playBotGame() {
+		ChessMove move;
+		int counter = 0;
+		while(counter < 1) {
+			System.out.println(turnCounter);
+			if(turnCounter%2 == 0) {
+				move = bot.action(this);
+				System.out.println("MOVE: " + move);
+				if(validateMove(move)) {
+					doAction(move);
+					//activeColor = activeColor^1;
+					counter++;
+					updateTurn();
 				}
+				else {
+					
+				}
+				//chessboard.addPanelsAndLabels();
 			}
+			else {
+				move = top.action(this);
+				if(validateMove(move)) {
+					doAction(move);
+					//activeColor = activeColor^1;
+					counter++;
+					updateTurn();
+				}
+				else {
+					
+				}
+				//chessboard.addPanelsAndLabels();
+			}
+			System.out.println("Move: " + move);
 		}
-		return moves;
 	}
 
+	public void playSingleStep() {
+		ChessMove move;
+		if(turnCounter%2 == 0) {
+			move = bot.action(this);
+			if(validateMove(move)) {
+				doAction(move);
+				updateTurn();
+			}
+			else {
+				
+			}
+		}
+		else {
+			move = top.action(this);
+			if(validateMove(move)) {
+				doAction(move);
+				updateTurn();
+			}
+			else {
+				
+			}
+		}
+		//chessboard.addPanelsAndLabels();
+	}
 	/**
 	 * Updates legal moves
 	 */
@@ -547,8 +628,7 @@ public class Chess {
 			System.out.println("----------updateLegalMoves----------");
 			System.out.println("PLAYER SIZE: " + playerAlive.size());
 			for (int i = 0; i < playerAlive.size(); i++) {
-				System.out.println(playerAlive.get(i) + " " + "Action List Size: " + playerAlive.get(i).getActions().size() + " " + " Row: "
-						+ playerAlive.get(i).getRow() + " Col: " + playerAlive.get(i).getCol());
+				System.out.println(playerAlive.get(i) + " " + "Action List Size: " + playerAlive.get(i).getActions().size() + " ");
 				for (int j = 0; j < playerAlive.get(i).getActions().size(); j++) {
 					System.out.print(playerAlive.get(i) + " ");
 					System.out.println(playerAlive.get(i).getActions().get(j));
@@ -557,8 +637,7 @@ public class Chess {
 			}
 			System.out.println("AI:");
 			for (int i = 0; i < aiAlive.size(); i++) {
-				System.out.println(aiAlive.get(i) + " " + "Action List Size: " + aiAlive.get(i).getActions().size() + " " + " Row: " + aiAlive.get(i).getRow()
-						+ " Col: " + aiAlive.get(i).getCol());
+				System.out.println(aiAlive.get(i) + " " + "Action List Size: " + aiAlive.get(i).getActions().size() + " ");
 				for (int j = 0; j < aiAlive.get(i).getActions().size(); j++) {
 					System.out.print(aiAlive.get(i) + " ");
 					System.out.println(aiAlive.get(i).getActions().get(j));
@@ -572,5 +651,9 @@ public class Chess {
 	private void updateTurn() {
 		turnCounter++;
 		activeColor = activeColor ^ 1;
+	}
+	
+	public int getTurn() {
+		return this.turnCounter;
 	}
 }

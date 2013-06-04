@@ -4,19 +4,27 @@ import java.util.ArrayList;
 import com.chess.engine.Chess;
 import com.chess.engine.ChessMove;
 import com.chess.engine.ChessPiece;
+import java.util.Random;
 
 public class ChrisAI {
 	public ArrayList<ChessPiece> myPiece;
 	public ArrayList<ChessMove> myMoves;
 	public ChessMove cm;
+	public Random r;
+	ChessPiece piece;
+	
 	public ChessMove action(Chess g) {
 		myPiece = g.getMyUnits();
-		for(int i = 0; i < myPiece.size(); i++) {
-			for(int j = 0; j < myPiece.get(i).getActions().size(); j++) {
-				cm = myPiece.get(i).getActions().get(0);
+		r = new Random();
+		
+		//i spent no time on this
+		while(true) {
+			piece = myPiece.get(r.nextInt(myPiece.size()));
+			if(piece.getActions().size() > 0) {
+				break;
 			}
 		}
-		return cm;
+		return piece.getActions().get(r.nextInt(piece.getActions().size()));
 	}
 
 }

@@ -2,6 +2,7 @@ package com.chess.ui;
 import javax.swing.JFrame;
 import com.chess.ai.chrisai.*;
 import com.chess.engine.ChessPiece;
+import javax.swing.*;
 public class GameContainer extends JFrame {
     private static final long serialVersionUID = 1L;
     public ChessBoard board;
@@ -17,7 +18,7 @@ public class GameContainer extends JFrame {
     }
     
     public GameContainer(ChrisAI a, ChrisAI b) {
-	
+    	
     }
     
     public static void main(String[] args) {
